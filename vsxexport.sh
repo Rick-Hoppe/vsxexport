@@ -25,20 +25,20 @@
 # VSX Export script v1.0
 #
 # Version History
-# 0.1   08-10-2019 Initial script
-# 0.2   11-10-2019 Display status on screen
-# 0.3   20-11-2019 Implemented new method to find Virtual System IDs
-# 0.4   22-11-2019 Extra Clish commands added to Clish script
-#                  Added Affinity + Multi-Queue settings
-# 0.5   25-11-2019 Modified output format (splitted conf and log files)
-# 0.6   06-07-2020 Rewritten backup of VSes other than VS0
-# 0.7   15-09-2020 Fix: -i option added to Clish batch command to ignore failures
-# 0.8   16-11-2020 Fix: Cleanup temporary files
-#                  Added "set virtual-system" to export of Clish config per Virtual System
-# 0.8.1 17-11-2020 Export Clish config of all Virtual Systems (other than VS0) to VS-all.config
-# 0.9   08-12-2020 Added support for 3.10 kernel
-# 0.9.1 06-01-2020 Implemented some "QA" fixes before 1.0 release of this script
-# 1.0   07-01-2020 Release 1.0
+# 0.1   Initial script
+# 0.2   Display status on screen
+# 0.3   Implemented new method to find Virtual System IDs
+# 0.4   Extra Clish commands added to Clish script
+#       Added Affinity + Multi-Queue settings
+# 0.5   Modified output format (splitted conf and log files)
+# 0.6   Rewritten backup of VSes other than VS0
+# 0.7   Fix: -i option added to Clish batch command to ignore failures
+# 0.8   Fix: Cleanup temporary files
+#       Added "set virtual-system" to export of Clish config per Virtual System
+# 0.8.1 Export Clish config of all Virtual Systems (other than VS0) to VS-all.config
+# 0.9   Added support for 3.10 kernel
+# 0.9.1 Implemented some "QA" fixes before 1.0 release of this script
+# 1.0   Public release 1.0
 
 
 
