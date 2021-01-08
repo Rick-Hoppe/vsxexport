@@ -22,23 +22,24 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
-# VSX Export script v1.0
+# VSX Export script v1.0.1
 #
 # Version History
-# 0.1   Initial script
-# 0.2   Display status on screen
-# 0.3   Implemented new method to find Virtual System IDs
-# 0.4   Extra Clish commands added to Clish script
-#       Added Affinity + Multi-Queue settings
-# 0.5   Modified output format (splitted conf and log files)
-# 0.6   Rewritten backup of VSes other than VS0
-# 0.7   Fix: -i option added to Clish batch command to ignore failures
-# 0.8   Fix: Cleanup temporary files
-#       Added "set virtual-system" to export of Clish config per Virtual System
-# 0.8.1 Export Clish config of all Virtual Systems (other than VS0) to VS-all.config
-# 0.9   Added support for 3.10 kernel
-# 0.9.1 Implemented some "QA" fixes before 1.0 release of this script
-# 1.0   Public release 1.0
+# 0.1    Initial script
+# 0.2    Display status on screen
+# 0.3    Implemented new method to find Virtual System IDs
+# 0.4    Extra Clish commands added to Clish script
+#        Added Affinity + Multi-Queue settings
+# 0.5    Modified output format (splitted conf and log files)
+# 0.6    Rewritten backup of VSes other than VS0
+# 0.7    Fix: -i option added to Clish batch command to ignore failures
+# 0.8    Fix: Cleanup temporary files
+#        Added "set virtual-system" to export of Clish config per Virtual System
+# 0.8.1  Export Clish config of all Virtual Systems (other than VS0) to VS-all.config
+# 0.9    Added support for 3.10 kernel
+# 0.9.1  Implemented some "QA" fixes before 1.0 release of this script
+# 1.0    Public release 1.0
+# 1.0.1  Output of other Virtual Systems now have same style as output of VS0
 
 
 
@@ -84,7 +85,7 @@ fi
 #====================================================================================================
 HOSTNAME=$(hostname -s)
 DATE=$(date +%Y%m%d-%H%M%S)
-VERSION="1.0 (07-01-2021)"
+VERSION="1.0.1 (08-01-2021)"
 OUTPUTDIR="$HOSTNAME/$DATE"
 KERNVER=$(uname -r | awk -F. '{print $1 "." $2}')
 
@@ -412,6 +413,8 @@ do
         check_failed
     fi
 
+    printf "| \t\t\t| \t\t\t\t\t|\t\t|\n"
+    printf "| \t\t\t| Searching for configuration files:\t|\t\t|\n"
 
     VSZEROED=$(printf '%05d\n' $i)
     CTXPATH=$(find /var/opt/CPsuite* -name CTX)
@@ -419,10 +422,14 @@ do
     find $VSVARPATH -name local.arp | cpio -pdm --quiet $OUTPUTDIR/VS$i
     if [[ -e $VSVARPATH/local.arp ]]; then
         printf "| \t\t\t| local.arp found\t\t\t|${txt_green} SAVED${txt_reset}\t\t|\n"
+    else
+        printf "| \t\t\t| local.arp NOT found\t\t\t|${txt_green} OK${txt_reset}\t\t|\n"
     fi
     find $VSVARPATH -name cpha_bond_ls_config.conf | cpio -pdm --quiet $OUTPUTDIR/VS$i
     if [[ -e $VSVARPATH/cpha_bond_ls_config.conf ]]; then
         printf "| \t\t\t| cpha_bond_ls_config.conf found\t|${txt_green} SAVED${txt_reset}\t\t|\n"
+else
+        printf "| \t\t\t| cpha_bond_ls_config.conf NOT found\t|${txt_green} OK${txt_reset}\t\t|\n"
     fi
     echo "+-----------------------+---------------------------------------+---------------+"
 done
