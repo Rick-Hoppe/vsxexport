@@ -15,5 +15,6 @@ Bash script for exporting Gaia configuration of VS0 as well as all other Virtual
 0.9   Added support for 3.10 kernel  
 0.9.1 Implemented some "QA" fixes before 1.0 release of this script  
 1.0   Public release 1.0  
+1.0.1  Output of other Virtual Systems now have same style as output of VS0  
   
 This project is licensed under the terms of the MIT license.
