@@ -17,6 +17,7 @@ Bash script for exporting Gaia configuration of VS0 as well as all other Virtual
 1.0   Public release 1.0  
 1.0.1  Output of other Virtual Systems now have same style as output of VS0  
 1.0.2  Added commands starting with "set prefix-" to export of Clish config per Virtual System  
+1.0.3  Added commands starting with "set bootp" to export of Clish config per Virtual System  
 
   
 This project is licensed under the terms of the MIT license.
