@@ -22,7 +22,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
-# VSX Export script v1.0.2
+# VSX Export script v1.0.3
 #
 # Version History
 # 0.1    Initial script
@@ -41,6 +41,8 @@
 # 1.0    Public release 1.0
 # 1.0.1  Output of other Virtual Systems now have same style as output of VS0
 # 1.0.2  Added commands starting with "set prefix-" to export of Clish config per Virtual System
+# 1.0.3  Added commands starting with "set bootp" to export of Clish config per Virtual System
+
 
 
 
@@ -86,7 +88,7 @@ fi
 #====================================================================================================
 HOSTNAME=$(hostname -s)
 DATE=$(date +%Y%m%d-%H%M%S)
-VERSION="1.0.2 (22-01-2021)"
+VERSION="1.0.3 (05-03-2021)"
 OUTPUTDIR="$HOSTNAME/$DATE"
 KERNVER=$(uname -r | awk -F. '{print $1 "." $2}')
 
@@ -388,8 +390,8 @@ do
     mv VS$i.tmp $OUTPUTDIR/VS$i
     echo "set virtual-system $i" >$OUTPUTDIR/VS$i/VS$i.config
     echo "set virtual-system $i" >>$OUTPUTDIR/VS-all.config
-    grep -E 'set router-id|set as|set bgp|set prefix-|set routemap|set igmp|set pim|set ospf' $OUTPUTDIR/VS$i/VS$i.tmp >>$OUTPUTDIR/VS$i/VS$i.config
-    grep -E 'set router-id|set as|set bgp|set prefix-|set routemap|set igmp|set pim|set ospf' $OUTPUTDIR/VS$i/VS$i.tmp >>$OUTPUTDIR/VS-all.config
+    grep -E 'set router-id|set as|set bgp|set prefix-|set routemap|set igmp|set pim|set ospf|set bootp' $OUTPUTDIR/VS$i/VS$i.tmp >>$OUTPUTDIR/VS$i/VS$i.config
+    grep -E 'set router-id|set as|set bgp|set prefix-|set routemap|set igmp|set pim|set ospf|set bootp' $OUTPUTDIR/VS$i/VS$i.tmp >>$OUTPUTDIR/VS-all.config
     rm $OUTPUTDIR/$HOSTNAME-VS$i.clish
     rm $OUTPUTDIR/VS$i/VS$i.tmp
     if [[ -e $OUTPUTDIR/VS$i/VS$i.config ]]; then
