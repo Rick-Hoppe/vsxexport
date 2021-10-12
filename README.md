@@ -18,7 +18,12 @@ Bash script for exporting Gaia configuration of VS0 as well as all other Virtual
 1.0.1  Output of other Virtual Systems now have same style as output of VS0  
 1.0.2  Added commands starting with "set prefix-" to export of Clish config per Virtual System  
 1.0.3  Added commands starting with "set bootp" to export of Clish config per Virtual System  
-1.0.4  Added commands starting with "set route-redistribution" to export of Clish config per Virtual System
+1.0.4  Added commands starting with "set route-redistribution" to export of Clish config per Virtual System  
+1.0.5  Added commands starting with "add arp" to export of Clish config per Virtual System  
+       Added commands starting with "set max-path-splits" to export of Clish config per Virtual System  
+       Added commands starting with "set inbound-route-filter" to export of Clish config per Virtual System  
+       Added commands starting with "set pbr" to export of Clish config per Virtual System  
+       Minor change in CoreXL status check  
 
   
 This project is licensed under the terms of the MIT license.
