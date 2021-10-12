@@ -22,7 +22,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
-# VSX Export script v1.0.4
+# VSX Export script v1.0.5
 #
 # Version History
 # 0.1    Initial script
@@ -43,6 +43,11 @@
 # 1.0.2  Added commands starting with "set prefix-" to export of Clish config per Virtual System
 # 1.0.3  Added commands starting with "set bootp" to export of Clish config per Virtual System
 # 1.0.4  Added commands starting with "set route-redistribution" to export of Clish config per Virtual System
+# 1.0.5  Added commands starting with "add arp" to export of Clish config per Virtual System
+#        Added commands starting with "set max-path-splits" to export of Clish config per Virtual System
+#        Added commands starting with "set inbound-route-filter" to export of Clish config per Virtual System
+#        Added commands starting with "set pbr" to export of Clish config per Virtual System
+#        Minor change in CoreXL status check
 
 
 
@@ -53,6 +58,7 @@
 if [[ -e /etc/profile.d/CP.sh ]]; then
     source /etc/profile.d/CP.sh
 fi
+
 
 if [[ -e /etc/profile.d/vsenv.sh ]]; then
     source /etc/profile.d/vsenv.sh
@@ -89,7 +95,7 @@ fi
 #====================================================================================================
 HOSTNAME=$(hostname -s)
 DATE=$(date +%Y%m%d-%H%M%S)
-VERSION="1.0.4 (08-10-2021)"
+VERSION="1.0.5 (12-10-2021)"
 OUTPUTDIR="$HOSTNAME/$DATE"
 KERNVER=$(uname -r | awk -F. '{print $1 "." $2}')
 
@@ -168,7 +174,7 @@ CXL=$(fw ctl multik stat 2>&1)
 fw ctl multik stat >$OUTPUTDIR/corexl.log 2>&1
 
 printf "| CoreXL\t\t| Log status\t\t\t\t|"
-if [[ -e $OUTPUTDIR/corexl.log ]] && [[ $CXL == " CoreXL is disabled" ]]; then
+if [[ -e $OUTPUTDIR/corexl.log ]] && [[ $CXL == *"disabled"* ]]; then
     check_disabled
 else
     check_enabled
@@ -391,8 +397,8 @@ do
     mv VS$i.tmp $OUTPUTDIR/VS$i
     echo "set virtual-system $i" >$OUTPUTDIR/VS$i/VS$i.config
     echo "set virtual-system $i" >>$OUTPUTDIR/VS-all.config
-    grep -E 'set router-id|set as|set bgp|set prefix-|set routemap|set igmp|set pim|set ospf|set bootp|set route-redistribution' $OUTPUTDIR/VS$i/VS$i.tmp >>$OUTPUTDIR/VS$i/VS$i.config
-    grep -E 'set router-id|set as|set bgp|set prefix-|set routemap|set igmp|set pim|set ospf|set bootp|set route-redistribution' $OUTPUTDIR/VS$i/VS$i.tmp >>$OUTPUTDIR/VS-all.config
+    grep -E 'set router-id|set as|set bgp|set prefix-|set routemap|set igmp|set pim|set ospf|set bootp|set route-redistribution|add arp|set max-path-splits|set inbound-route-filter|set pbr' $OUTPUTDIR/VS$i/VS$i.tmp >>$OUTPUTDIR/VS$i/VS$i.config
+    grep -E 'set router-id|set as|set bgp|set prefix-|set routemap|set igmp|set pim|set ospf|set bootp|set route-redistribution|add arp|set max-path-splits|set inbound-route-filter|set pbr' $OUTPUTDIR/VS$i/VS$i.tmp >>$OUTPUTDIR/VS-all.config
     rm $OUTPUTDIR/$HOSTNAME-VS$i.clish
     rm $OUTPUTDIR/VS$i/VS$i.tmp
     if [[ -e $OUTPUTDIR/VS$i/VS$i.config ]]; then
