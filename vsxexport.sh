@@ -22,7 +22,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
-# VSX Export script v1.0.5
+# VSX Export script v1.1
 #
 # Version History
 # 0.1    Initial script
@@ -48,7 +48,7 @@
 #        Added commands starting with "set inbound-route-filter" to export of Clish config per Virtual System
 #        Added commands starting with "set pbr" to export of Clish config per Virtual System
 #        Minor change in CoreXL status check
-
+# 1.1    Added self-update mechanism
 
 
 
@@ -63,6 +63,20 @@ fi
 if [[ -e /etc/profile.d/vsenv.sh ]]; then
     source /etc/profile.d/vsenv.sh
 fi
+
+
+
+#====================================================================================================
+# Variables
+#====================================================================================================
+HOSTNAME=$(hostname -s)
+DATE=$(date +%Y%m%d-%H%M%S)
+VERSION="1.1"
+OUTPUTDIR="$HOSTNAME/$DATE"
+KERNVER=$(uname -r | awk -F. '{print $1 "." $2}')
+SCRIPT_URL="https://raw.githubusercontent.com/Rick-Hoppe/vsxexport/main/vsxexport.sh"
+SCRIPT_LOCATION="${BASH_SOURCE[@]}"
+UPDATER="updater.sh"
 
 
 
@@ -88,17 +102,9 @@ if [[ $CPVER != *"R8"* ]]; then
     exit 1
 fi
 
-
-
-#====================================================================================================
-# Variables
-#====================================================================================================
-HOSTNAME=$(hostname -s)
-DATE=$(date +%Y%m%d-%H%M%S)
-VERSION="1.0.5 (12-10-2021)"
-OUTPUTDIR="$HOSTNAME/$DATE"
-KERNVER=$(uname -r | awk -F. '{print $1 "." $2}')
-
+if [[ -f $UPDATER ]]; then
+   rm -f $UPDATER
+fi
 
 
 #====================================================================================================
@@ -142,12 +148,49 @@ check_notsupported()
 
 
 #====================================================================================================
+# Update function
+#====================================================================================================
+update()
+{
+    TMP_FILE=$(mktemp -p "" "XXXXXXXXX.sh")
+    printf "Checking for updates..."
+    curl_cli -s -k -L "$SCRIPT_URL" > "$TMP_FILE"
+    WEBOK=$(echo $?)
+
+    if [[ ! $WEBOK -eq 0 ]]; then
+        printf "FAILED\n\n"
+    else
+    NEW_VER=$(grep "^VERSION" "$TMP_FILE" | awk -F'[="]' '{print $3}')
+    ABS_SCRIPT_PATH=$(readlink -f "$SCRIPT_LOCATION")
+     if [ "$VERSION" != "$NEW_VER" ]; then
+        printf "Updating script \e[31;1m%s\e[0m -> \e[32;1m%s\e[0m\n" "$VERSION" "$NEW_VER"
+        echo "cp \"$TMP_FILE\" \"$ABS_SCRIPT_PATH\"" > $UPDATER
+        echo "rm -f \"$TMP_FILE\"" >> $UPDATER
+        echo "echo" >> $UPDATER
+        echo "echo Restarting script..." >> $UPDATER
+        echo "sleep 2" >> $UPDATER
+        echo "exec \"$ABS_SCRIPT_PATH\" \"$@\"" >> $UPDATER
+        chmod +x "$UPDATER"
+        chmod +x "$TMP_FILE"
+        exec ./$UPDATER
+     else
+        printf "Version is up-to-date\n\n"
+        rm -f "$TMP_FILE"
+     fi
+    fi
+}
+
+
+
+#====================================================================================================
 # It's time to show something to the world...
 #====================================================================================================
 vsenv 0 > /dev/null 2>&1
 mkdir -p $OUTPUTDIR
+clear
+printf "vsxexport.sh $VERSION\n\n"
+update "$@"
 
-printf "\nvsxexport.sh $VERSION\n\n"
 printf "Detected Check Point VSX ${CPVER%.} with $KERNVER kernel...\n"
 
 if [[ "$CPVER" == "R80.10" && $(vs_bits -stat) == *"32"* ]];then
