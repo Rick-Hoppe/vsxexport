@@ -186,11 +186,11 @@ update()
 # It's time to show something to the world...
 #====================================================================================================
 vsenv 0 > /dev/null 2>&1
-mkdir -p $OUTPUTDIR
 clear
 printf "vsxexport.sh $VERSION\n\n"
 update "$@"
 
+mkdir -p $OUTPUTDIR
 printf "Detected Check Point VSX ${CPVER%.} with $KERNVER kernel...\n"
 
 if [[ "$CPVER" == "R80.10" && $(vs_bits -stat) == *"32"* ]];then
