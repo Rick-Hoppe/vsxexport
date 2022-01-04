@@ -25,6 +25,9 @@ Bash script for exporting Gaia configuration of VS0 as well as all other Virtual
        Added commands starting with "set pbr" to export of Clish config per Virtual System  
        Minor change in CoreXL status check  
 1.1    Added self-update mechanism  
+1.2    Added status of Dynamic Balancing  
+       Added status of SecureXL Fast Accelerator  
+       Log information about interfaces  
 
   
 This project is licensed under the terms of the MIT license.
