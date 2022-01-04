@@ -49,7 +49,7 @@
 #        Added commands starting with "set pbr" to export of Clish config per Virtual System
 #        Minor change in CoreXL status check
 # 1.1    Added self-update mechanism
-# 1.2  Added status of Dynamic Balancing
+# 1.2    Added status of Dynamic Balancing
 #        Added status of SecureXL Fast Accelerator
 #        Log information about interfaces
 
