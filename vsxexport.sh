@@ -2,7 +2,7 @@
 #
 # MIT License
 #
-# Copyright (c) 2021 Rick Hoppe
+# Copyright (c) 2022 Rick Hoppe
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
-# VSX Export script v1.1
+# VSX Export script v1.2
 #
 # Version History
 # 0.1    Initial script
@@ -49,7 +49,9 @@
 #        Added commands starting with "set pbr" to export of Clish config per Virtual System
 #        Minor change in CoreXL status check
 # 1.1    Added self-update mechanism
-
+# 1.2  Added status of Dynamic Balancing
+#        Added status of SecureXL Fast Accelerator
+#        Log information about interfaces
 
 
 #====================================================================================================
@@ -71,7 +73,7 @@ fi
 #====================================================================================================
 HOSTNAME=$(hostname -s)
 DATE=$(date +%Y%m%d-%H%M%S)
-VERSION="1.1"
+VERSION="1.2"
 OUTPUTDIR="$HOSTNAME/$DATE"
 KERNVER=$(uname -r | awk -F. '{print $1 "." $2}')
 SCRIPT_URL="https://raw.githubusercontent.com/Rick-Hoppe/vsxexport/main/vsxexport.sh"
@@ -191,6 +193,7 @@ printf "vsxexport.sh $VERSION\n\n"
 update "$@"
 
 mkdir -p $OUTPUTDIR
+mkdir -p $OUTPUTDIR/VS0
 printf "Detected Check Point VSX ${CPVER%.} with $KERNVER kernel...\n"
 
 if [[ "$CPVER" == "R80.10" && $(vs_bits -stat) == *"32"* ]];then
@@ -228,6 +231,25 @@ printf "+-----------------------+---------------------------------------+-------
 
 
 #====================================================================================================
+# Check status of Dynamic Balancing
+#====================================================================================================
+if [[ -e $FWDIR/bin/dynamic_balancing ]]; then
+  DYNBAL=$(dynamic_balancing -p)
+  dynamic_balancing -p >$OUTPUTDIR/dynamic_balancing.log 2>&1
+
+  printf "| Dynamic Balancing\t| Log status\t\t\t\t|"
+  if [[ -e $OUTPUTDIR/dynamic_balancing.log ]] && [[ $DYNBAL == *"Off"* ]]; then
+    check_disabled
+  else
+    check_enabled
+  fi
+fi
+
+printf "+-----------------------+---------------------------------------+---------------+\n"
+
+
+
+#====================================================================================================
 # Check status of Hyper-Threading (SMT)
 #====================================================================================================
 HT=$(clish -c "show asset system" | grep Hyperthreading | awk {'print $3'})
@@ -238,6 +260,21 @@ if [[ -e $OUTPUTDIR/hyperthreading.log ]] && [[ $HT == "Enabled" ]]; then
     check_enabled
 elif [[ -e $OUTPUTDIR/hyperthreading.log ]] && [[ $HT == "Disabled" ]]; then
       check_disabled
+fi
+
+printf "+-----------------------+---------------------------------------+---------------+\n"
+
+
+
+#====================================================================================================
+# Log Network Interfaces to file
+#====================================================================================================
+printf "| Network Interfaces\t| Log ifconfig output to file\t\t|"
+ifconfig >$OUTPUTDIR/VS0/ifconfig.log
+if [[ -e $OUTPUTDIR/VS0/ifconfig.log ]]; then
+    check_passed
+else
+    check_failed
 fi
 
 printf "+-----------------------+---------------------------------------+---------------+\n"
@@ -299,11 +336,29 @@ printf "+-----------------------+---------------------------------------+-------
 
 
 #====================================================================================================
+# Check status of SecureXL Fast Accelerator and log to file
+#====================================================================================================
+SXL_FAST_ACC=$(fw ctl fast_accel show_state 2>&1)
+fw ctl fast_accel show_state >$OUTPUTDIR/VS0/securexl_fast_accel.log 2>&1
+fw ctl fast_accel show_table >>$OUTPUTDIR/VS0/securexl_fast_accel.log 2>&1
+
+
+printf "| SXL Fast Accelerator\t| Log status and settings to file\t|"
+if [[ -e $OUTPUTDIR/VS0/securexl_fast_accel.log ]] && [[ $SXL_FAST_ACC == *"disabled"* ]]; then
+    check_disabled
+else
+    check_enabled
+fi
+
+printf "+-----------------------+---------------------------------------+---------------+\n"
+
+
+
+#====================================================================================================
 # Save VS0 config to OUTPUTDIR
 #====================================================================================================
 printf "| VS0\t\t\t| Export Clish configuration\t\t|"
 clish -c "save configuration VS0.config"
-mkdir -p $OUTPUTDIR/VS0
 mv VS0.config $OUTPUTDIR/VS0
 
 if [[ -e $OUTPUTDIR/VS0/VS0.config ]]; then
@@ -461,6 +516,25 @@ do
     rm $OUTPUTDIR/$HOSTNAME-VS$i.clish
     rm $OUTPUTDIR/$HOSTNAME-VS$i.tmp
     if [[ -e $OUTPUTDIR/VS$i/VS$i.log ]]; then
+        check_passed
+    else
+        check_failed
+    fi
+
+    vsenv $i > /dev/null 2>&1
+    SXL_FAST_ACC=$(fw ctl fast_accel show_state 2>&1)
+    fw ctl fast_accel show_state >$OUTPUTDIR/VS$i/securexl_fast_accel.log 2>&1
+    fw ctl fast_accel show_table >>$OUTPUTDIR/VS$i/securexl_fast_accel.log 2>&1
+    printf "| SXL Fast Accelerator\t| Log status and settings to file\t|"
+    if [[ -e $OUTPUTDIR/VS$i/securexl_fast_accel.log ]] && [[ $SXL_FAST_ACC == *"disabled"* ]]; then
+        check_disabled
+    else
+        check_enabled
+    fi
+
+    printf "| Network Interfaces\t| Log ifconfig output to file\t\t|"
+    ifconfig >$OUTPUTDIR/VS$i/ifconfig.log
+    if [[ -e $OUTPUTDIR/VS$i/ifconfig.log ]]; then
         check_passed
     else
         check_failed
