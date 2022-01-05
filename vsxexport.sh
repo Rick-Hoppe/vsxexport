@@ -238,7 +238,7 @@ if [[ -e $FWDIR/bin/dynamic_balancing ]]; then
   dynamic_balancing -p >$OUTPUTDIR/dynamic_balancing.log 2>&1
 
   printf "| Dynamic Balancing\t| Log status\t\t\t\t|"
-  if [[ -e $OUTPUTDIR/dynamic_balancing.log ]] && [[ $DYNBAL == *"Off"* ]]; then
+  if [[ $DYNBAL == *"off"* ]] || [[ $DYNBAL == *"Off"* ]]; then
     check_disabled
   else
     check_enabled
