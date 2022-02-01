@@ -53,6 +53,7 @@
 #        Added status of SecureXL Fast Accelerator
 #        Log information about interfaces
 # 1.3    Added backup of modded trac_client_1.ttm per VS
+#        Added simkern.conf new location
 
 
 #====================================================================================================
@@ -390,10 +391,16 @@ else
 fi
 
 if [[ -e $PPKDIR/boot/modules/simkern.conf ]]; then
+    if ! grep -q Deprecated $PPKDIR/boot/modules/simkern.conf; then
     cp --parents $PPKDIR/boot/modules/simkern.conf $OUTPUTDIR/VS0
+    else
+    if [[ -e $PPKDIR/conf/simkern.conf ]]; then
+    cp --parents $PPKDIR/conf/simkern.conf $OUTPUTDIR/VS0
     printf "| \t\t\t| simkern.conf found\t\t\t|${txt_green} SAVED${txt_reset}\t\t|\n"
 else
     printf "| \t\t\t| simkern.conf NOT found\t\t|${txt_green} OK${txt_reset}\t\t|\n"
+fi
+fi
 fi
 
 if [[ -e $PPKDIR/boot/modules/sim_aff.conf ]]; then
