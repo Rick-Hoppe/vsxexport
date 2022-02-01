@@ -52,6 +52,7 @@
 # 1.2    Added status of Dynamic Balancing
 #        Added status of SecureXL Fast Accelerator
 #        Log information about interfaces
+# 1.3    Added backup of modded trac_client_1.ttm per VS
 
 
 #====================================================================================================
@@ -558,6 +559,16 @@ do
 else
         printf "| \t\t\t| cpha_bond_ls_config.conf NOT found\t|${txt_green} OK${txt_reset}\t\t|\n"
     fi
+    
+    TRACFILE=$VSVARPATH/trac_client_1.ttm
+    TRAC=$(md5sum $TRACFILE | awk {'print $1'})
+    if [[ ! -L $TRACFILE && $TRAC != "9d898b072aa5e0d3646ce81829c45453" ]]; then
+    cp --parents $VSVARPATH/trac_client_1.ttm $OUTPUTDIR/VS$i
+    printf "| \t\t\t| Custom trac_client_1.ttm\t\t|${txt_green} SAVED${txt_reset}\t\t|\n"
+    else
+    printf "| \t\t\t| Default trac_client_1.ttm\t\t|${txt_green} NOT SAVED${txt_reset}\t|\n"
+    fi
+
     echo "+-----------------------+---------------------------------------+---------------+"
 done
 
