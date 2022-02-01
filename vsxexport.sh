@@ -54,6 +54,7 @@
 #        Log information about interfaces
 # 1.3    Added backup of modded trac_client_1.ttm per VS
 #        Added simkern.conf new location
+#        Added rad_conf.C backup
 
 
 #====================================================================================================
@@ -484,7 +485,12 @@ else
     printf "| \t\t\t| ipassignment.conf NOT found\t\t|${txt_green} OK${txt_reset}\t\t|\n"
 fi
 
-
+if [[ -e $FWDIR/conf/rad_conf.C ]]; then
+    cp --parents $FWDIR/conf/rad_conf.C $OUTPUTDIR/VS0
+    printf "| \t\t\t| rad_conf.C found\t\t\t|${txt_green} SAVED${txt_reset}\t\t|\n"
+else
+    printf "| \t\t\t| rad_conf.C NOT found\t\t|${txt_green} OK${txt_reset}\t\t|\n"
+fi
 
 #====================================================================================================
 # Save custom configuration other VS's + checks
