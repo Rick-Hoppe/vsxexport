@@ -475,7 +475,7 @@ if [[ $TRAC != "9d898b072aa5e0d3646ce81829c45453" ]]; then
     cp --parents $FWDIR/conf/trac_client_1.ttm $OUTPUTDIR/VS0
     printf "| \t\t\t| Custom trac_client_1.ttm\t\t|${txt_green} SAVED${txt_reset}\t\t|\n"
 else
-    printf "| \t\t\t| Default trac_client_1.ttm\t\t|${txt_green} NOT SAVED${txt_reset}\t|\n"
+    printf "| \t\t\t| Default trac_client_1.ttm\t\t|${txt_green} NOT SAVED${txt_reset}\t\t|\n"
 fi
 
 if [[ -e $FWDIR/conf/ipassignment.conf ]]; then
