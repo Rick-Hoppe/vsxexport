@@ -52,6 +52,9 @@
 # 1.2    Added status of Dynamic Balancing
 #        Added status of SecureXL Fast Accelerator
 #        Log information about interfaces
+# 1.3    Added backup of modded trac_client_1.ttm per VS
+#        Added simkern.conf new location
+#        Added rad_conf.C backup
 
 
 #====================================================================================================
@@ -389,10 +392,16 @@ else
 fi
 
 if [[ -e $PPKDIR/boot/modules/simkern.conf ]]; then
+    if ! grep -q Deprecated $PPKDIR/boot/modules/simkern.conf; then
     cp --parents $PPKDIR/boot/modules/simkern.conf $OUTPUTDIR/VS0
+    else
+    if [[ -e $PPKDIR/conf/simkern.conf ]]; then
+    cp --parents $PPKDIR/conf/simkern.conf $OUTPUTDIR/VS0
     printf "| \t\t\t| simkern.conf found\t\t\t|${txt_green} SAVED${txt_reset}\t\t|\n"
 else
     printf "| \t\t\t| simkern.conf NOT found\t\t|${txt_green} OK${txt_reset}\t\t|\n"
+fi
+fi
 fi
 
 if [[ -e $PPKDIR/boot/modules/sim_aff.conf ]]; then
@@ -466,7 +475,7 @@ if [[ $TRAC != "9d898b072aa5e0d3646ce81829c45453" ]]; then
     cp --parents $FWDIR/conf/trac_client_1.ttm $OUTPUTDIR/VS0
     printf "| \t\t\t| Custom trac_client_1.ttm\t\t|${txt_green} SAVED${txt_reset}\t\t|\n"
 else
-    printf "| \t\t\t| Default trac_client_1.ttm\t\t|${txt_green} NOT SAVED${txt_reset}\t|\n"
+    printf "| \t\t\t| Default trac_client_1.ttm\t\t|${txt_green} NOT SAVED${txt_reset}\t\t|\n"
 fi
 
 if [[ -e $FWDIR/conf/ipassignment.conf ]]; then
@@ -476,7 +485,12 @@ else
     printf "| \t\t\t| ipassignment.conf NOT found\t\t|${txt_green} OK${txt_reset}\t\t|\n"
 fi
 
-
+if [[ -e $FWDIR/conf/rad_conf.C ]]; then
+    cp --parents $FWDIR/conf/rad_conf.C $OUTPUTDIR/VS0
+    printf "| \t\t\t| rad_conf.C found\t\t\t|${txt_green} SAVED${txt_reset}\t\t|\n"
+else
+    printf "| \t\t\t| rad_conf.C NOT found\t\t|${txt_green} OK${txt_reset}\t\t|\n"
+fi
 
 #====================================================================================================
 # Save custom configuration other VS's + checks
@@ -558,6 +572,16 @@ do
 else
         printf "| \t\t\t| cpha_bond_ls_config.conf NOT found\t|${txt_green} OK${txt_reset}\t\t|\n"
     fi
+    
+    TRACFILE=$VSVARPATH/trac_client_1.ttm
+    TRAC=$(md5sum $TRACFILE | awk {'print $1'})
+    if [[ ! -L $TRACFILE && $TRAC != "9d898b072aa5e0d3646ce81829c45453" ]]; then
+    cp --parents $VSVARPATH/trac_client_1.ttm $OUTPUTDIR/VS$i
+    printf "| \t\t\t| Custom trac_client_1.ttm\t\t|${txt_green} SAVED${txt_reset}\t\t|\n"
+    else
+    printf "| \t\t\t| Default trac_client_1.ttm\t\t|${txt_green} NOT SAVED${txt_reset}\t|\n"
+    fi
+
     echo "+-----------------------+---------------------------------------+---------------+"
 done
 
