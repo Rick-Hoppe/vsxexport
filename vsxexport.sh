@@ -556,6 +556,14 @@ do
         check_failed
     fi
 
+    printf "| Active Proxy ARP\t| Log fw ctl arp output to file\t\t|"
+    fw ctl arp -n >$OUTPUTDIR/VS$i/proxy_arp.log 2>&1
+    if [[ -e $OUTPUTDIR/VS$i/proxy_arp.log ]]; then
+        check_passed
+    else
+        check_failed
+    fi
+
     printf "| \t\t\t| \t\t\t\t\t|\t\t|\n"
     printf "| \t\t\t| Searching for configuration files:\t|\t\t|\n"
 
@@ -575,13 +583,6 @@ do
         printf "| \t\t\t| cpha_bond_ls_config.conf NOT found\t|${txt_green} OK${txt_reset}\t\t|\n"
     fi
     printf "| Active Proxy ARP\t| Log fw ctl arp output to file\t\t|"
-    PROXY_ARP=$(fw ctl arp -n 2>&1)
-    fw ctl arp -n >$OUTPUTDIR/VS$i/proxy_arp.log 2>&1
-    if [[ -e $OUTPUTDIR/VS$i/proxy_arp.log ]]; then
-        check_passed
-    else
-        check_failed
-    fi
 
     echo "+-----------------------+---------------------------------------+---------------+"
 done
