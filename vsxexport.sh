@@ -582,7 +582,6 @@ do
     else
         printf "| \t\t\t| cpha_bond_ls_config.conf NOT found\t|${txt_green} OK${txt_reset}\t\t|\n"
     fi
-    printf "| Active Proxy ARP\t| Log fw ctl arp output to file\t\t|"
 
     echo "+-----------------------+---------------------------------------+---------------+"
 done
