@@ -28,6 +28,6 @@ Bash script for exporting Gaia configuration of VS0 as well as all other Virtual
 1.2    Added status of Dynamic Balancing  
        Added status of SecureXL Fast Accelerator  
        Log information about interfaces  
-
+1.3    Log active proxy ARP entries per Virtual System
   
 This project is licensed under the terms of the MIT license.
