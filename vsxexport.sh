@@ -2,7 +2,7 @@
 #
 # MIT License
 #
-# Copyright (c) 2022 Rick Hoppe
+# Copyright (c) 2023 Rick Hoppe
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
-# VSX Export script v1.2
+# VSX Export script v1.3
 #
 # Version History
 # 0.1    Initial script
@@ -52,6 +52,8 @@
 # 1.2    Added status of Dynamic Balancing
 #        Added status of SecureXL Fast Accelerator
 #        Log information about interfaces
+# 1.3    Log active proxy ARP entries per Virtual System
+
 
 
 #====================================================================================================
@@ -73,7 +75,7 @@ fi
 #====================================================================================================
 HOSTNAME=$(hostname -s)
 DATE=$(date +%Y%m%d-%H%M%S)
-VERSION="1.2"
+VERSION="1.3"
 OUTPUTDIR="$HOSTNAME/$DATE"
 KERNVER=$(uname -r | awk -F. '{print $1 "." $2}')
 SCRIPT_URL="https://raw.githubusercontent.com/Rick-Hoppe/vsxexport/main/vsxexport.sh"
@@ -353,6 +355,21 @@ fi
 printf "+-----------------------+---------------------------------------+---------------+\n"
 
 
+#====================================================================================================
+# Check for active proxy ARP in VS0
+#====================================================================================================
+PROXY_ARP=$(fw ctl arp -n 2>&1)
+fw ctl arp -n >$OUTPUTDIR/VS0/proxy_arp.log 2>&1
+
+
+if [[ -e $OUTPUTDIR/VS0/proxy_arp.log ]]; then
+    printf "| Active Proxy ARP\t| Log entries to file\t\t\t|${txt_green} SAVED${txt_reset}\t\t|\n"
+else
+    printf "| Active Proxy ARP\t| Log entries to file\t\t\t|${txt_green} NOT SAVED${txt_reset}\t|\n"
+fi
+
+printf "+-----------------------+---------------------------------------+---------------+\n"
+
 
 #====================================================================================================
 # Save VS0 config to OUTPUTDIR
@@ -366,7 +383,6 @@ if [[ -e $OUTPUTDIR/VS0/VS0.config ]]; then
 else
     check_failed
 fi
-
 
 
 #====================================================================================================
@@ -555,9 +571,18 @@ do
     find $VSVARPATH -name cpha_bond_ls_config.conf | cpio -pdm --quiet $OUTPUTDIR/VS$i
     if [[ -e $VSVARPATH/cpha_bond_ls_config.conf ]]; then
         printf "| \t\t\t| cpha_bond_ls_config.conf found\t|${txt_green} SAVED${txt_reset}\t\t|\n"
-else
+    else
         printf "| \t\t\t| cpha_bond_ls_config.conf NOT found\t|${txt_green} OK${txt_reset}\t\t|\n"
     fi
+    printf "| Active Proxy ARP\t| Log fw ctl arp output to file\t\t|"
+    PROXY_ARP=$(fw ctl arp -n 2>&1)
+    fw ctl arp -n >$OUTPUTDIR/VS$i/proxy_arp.log 2>&1
+    if [[ -e $OUTPUTDIR/VS$i/proxy_arp.log ]]; then
+        check_passed
+    else
+        check_failed
+    fi
+
     echo "+-----------------------+---------------------------------------+---------------+"
 done
 
