@@ -29,5 +29,8 @@ Bash script for exporting Gaia configuration of VS0 as well as all other Virtual
        Added status of SecureXL Fast Accelerator  
        Log information about interfaces  
 1.3    Log active proxy ARP entries per Virtual System
+1.4    Added commands starting with "set aggregate" to export of Clish config per Virtual System
+       Log output of cpinfo -y all
+       Log output of netstat -rn (VS0)**
   
 This project is licensed under the terms of the MIT license.
