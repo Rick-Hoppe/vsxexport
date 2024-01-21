@@ -2,7 +2,7 @@
 #
 # MIT License
 #
-# Copyright (c) 2023 Rick Hoppe
+# Copyright (c) 2024 Rick Hoppe
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
-# VSX Export script v1.3
+# VSX Export script v1.4
 #
 # Version History
 # 0.1    Initial script
@@ -53,6 +53,9 @@
 #        Added status of SecureXL Fast Accelerator
 #        Log information about interfaces
 # 1.3    Log active proxy ARP entries per Virtual System
+# 1.4    Added commands starting with "set aggregate" to export of Clish config per Virtual System
+#        Log output of cpinfo -y all
+#        Log output of netstat -rn (VS0)
 
 
 
@@ -75,7 +78,7 @@ fi
 #====================================================================================================
 HOSTNAME=$(hostname -s)
 DATE=$(date +%Y%m%d-%H%M%S)
-VERSION="1.3"
+VERSION="1.4"
 OUTPUTDIR="$HOSTNAME/$DATE"
 KERNVER=$(uname -r | awk -F. '{print $1 "." $2}')
 SCRIPT_URL="https://raw.githubusercontent.com/Rick-Hoppe/vsxexport/main/vsxexport.sh"
@@ -212,6 +215,20 @@ fi
 printf "\n+=======================+=======================================+===============+\n"
 printf "| VS/Setting/Parameter  | Check                                 | Status        |\n"
 printf "+=======================+=======================================+===============+\n"
+
+
+#====================================================================================================
+# Log output of cpinfo to file
+#====================================================================================================
+printf "| cpinfo -y all\t\t| Log cpinfo output to file\t\t|"
+cpinfo -y all >$OUTPUTDIR/VS0/cpinfo.log 2>&1
+if [[ -e $OUTPUTDIR/VS0/cpinfo.log ]]; then
+    check_passed
+else
+    check_failed
+fi
+
+printf "+-----------------------+---------------------------------------+---------------+\n"
 
 
 
@@ -384,6 +401,25 @@ else
     check_failed
 fi
 
+printf "| \t\t\t| Log current routes to file\t\t|"
+echo "show bgp peers" >>$OUTPUTDIR/$HOSTNAME-VS0.clish
+echo "show ospf neighbors" >>$OUTPUTDIR/$HOSTNAME-VS0.clish
+echo "show route" >>$OUTPUTDIR/$HOSTNAME-VS0.clish
+echo "show route summary" >>$OUTPUTDIR/$HOSTNAME-VS$i.clish
+clish -i -f $OUTPUTDIR/$HOSTNAME-VS0.clish > $OUTPUTDIR/$HOSTNAME-VS0.tmp
+sed '/^Processing\|^Context\|^Done.\|^RTGRTG\|^CLICMD/d' $OUTPUTDIR/$HOSTNAME-VS0.tmp >$OUTPUTDIR/VS0/VS0.log
+rm $OUTPUTDIR/$HOSTNAME-VS0.clish
+rm $OUTPUTDIR/$HOSTNAME-VS0.tmp
+
+netstat -rn >$OUTPUTDIR/VS0/routesVSX.txt
+
+if [[ -e $OUTPUTDIR/VS0/VS0.log ]]; then
+    check_passed
+else
+    check_failed
+fi
+
+
 
 #====================================================================================================
 # Find customized configuration files and copy it inluding full path to OUTPUTDIR
@@ -511,8 +547,8 @@ do
     mv VS$i.tmp $OUTPUTDIR/VS$i
     echo "set virtual-system $i" >$OUTPUTDIR/VS$i/VS$i.config
     echo "set virtual-system $i" >>$OUTPUTDIR/VS-all.config
-    grep -E 'set router-id|set as|set bgp|set prefix-|set routemap|set igmp|set pim|set ospf|set bootp|set route-redistribution|add arp|set max-path-splits|set inbound-route-filter|set pbr' $OUTPUTDIR/VS$i/VS$i.tmp >>$OUTPUTDIR/VS$i/VS$i.config
-    grep -E 'set router-id|set as|set bgp|set prefix-|set routemap|set igmp|set pim|set ospf|set bootp|set route-redistribution|add arp|set max-path-splits|set inbound-route-filter|set pbr' $OUTPUTDIR/VS$i/VS$i.tmp >>$OUTPUTDIR/VS-all.config
+    grep -E 'set router-id|set as|set aggregate|set bgp|set prefix-|set routemap|set igmp|set pim|set ospf|set bootp|set route-redistribution|add arp|set max-path-splits|set inbound-route-filter|set pbr' $OUTPUTDIR/VS$i/VS$i.tmp >>$OUTPUTDIR/VS$i/VS$i.config
+    grep -E 'set router-id|set as|set aggregate|set bgp|set prefix-|set routemap|set igmp|set pim|set ospf|set bootp|set route-redistribution|add arp|set max-path-splits|set inbound-route-filter|set pbr' $OUTPUTDIR/VS$i/VS$i.tmp >>$OUTPUTDIR/VS-all.config
     rm $OUTPUTDIR/$HOSTNAME-VS$i.clish
     rm $OUTPUTDIR/VS$i/VS$i.tmp
     if [[ -e $OUTPUTDIR/VS$i/VS$i.config ]]; then
