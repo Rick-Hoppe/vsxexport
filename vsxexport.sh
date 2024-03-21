@@ -2,7 +2,7 @@
 #
 # MIT License
 #
-# Copyright (c) 2024 Rick Hoppe
+# Copyright (c) 2024 Rick Hoppe & Jan Kleinhans
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
-# VSX Export script v1.4
+# VSX Export script v1.4.1
 #
 # Version History
 # 0.1    Initial script
@@ -58,7 +58,7 @@
 # 1.4    Added commands starting with "set aggregate" to export of Clish config per Virtual System
 #        Log output of cpinfo -y all
 #        Log output of netstat -rn (VS0)
-
+# 1.4.1  Added backup of CPprofile
 
 #====================================================================================================
 # Global variables
@@ -79,10 +79,10 @@ fi
 #====================================================================================================
 HOSTNAME=$(hostname -s)
 DATE=$(date +%Y%m%d-%H%M%S)
-VERSION="1.4"
+VERSION="1.4.1"
 OUTPUTDIR="$HOSTNAME/$DATE"
 KERNVER=$(uname -r | awk -F. '{print $1 "." $2}')
-SCRIPT_URL="https://raw.githubusercontent.com/Rick-Hoppe/vsxexport/main/vsxexport.sh"
+SCRIPT_URL="https://raw.githubusercontent.com/jkleinhans/vsxexport/main/vsxexport.sh"
 SCRIPT_LOCATION="${BASH_SOURCE[@]}"
 UPDATER="updater.sh"
 
@@ -653,9 +653,9 @@ else
    #find $VSTMPPATH -name .CPprofile.sh | cpio -pdm --quiet $OUTPUTDIR/VS$i
    if [[ -e $VSTMPPATH/.CPprofile.sh ]]; then
 	cp --parents $VSTMPPATH/.CPprofile.sh $OUTPUTDIR/VS$i
-	printf "| \t\t\t| .CPProfile.sh found\t\t\t|${txt_green} SAVED${txt_reset}\t\t|\n"
+	printf "| \t\t\t| .CPprofile.sh found\t\t\t|${txt_green} SAVED${txt_reset}\t\t|\n"
     else
-        printf "| \t\t\t| .CPProfile.sh NOT found\t\t\t|${txt_green} OK${txt_reset}\t\t|\n"
+        printf "| \t\t\t| .CPprofile.sh NOT found\t\t\t|${txt_green} OK${txt_reset}\t\t|\n"
     fi	
     echo "+-----------------------+---------------------------------------+---------------+"  
 
