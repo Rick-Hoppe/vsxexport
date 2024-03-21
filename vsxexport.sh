@@ -2,7 +2,7 @@
 #
 # MIT License
 #
-# Copyright (c) 2022 Rick Hoppe
+# Copyright (c) 2024 Rick Hoppe
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
-# VSX Export script v1.2
+# VSX Export script v1.4
 #
 # Version History
 # 0.1    Initial script
@@ -55,6 +55,9 @@
 # 1.3    Added backup of modded trac_client_1.ttm per VS
 #        Added simkern.conf new location
 #        Added rad_conf.C backup
+# 1.4    Added commands starting with "set aggregate" to export of Clish config per Virtual System
+#        Log output of cpinfo -y all
+#        Log output of netstat -rn (VS0)
 
 
 #====================================================================================================
@@ -76,7 +79,7 @@ fi
 #====================================================================================================
 HOSTNAME=$(hostname -s)
 DATE=$(date +%Y%m%d-%H%M%S)
-VERSION="1.2"
+VERSION="1.4"
 OUTPUTDIR="$HOSTNAME/$DATE"
 KERNVER=$(uname -r | awk -F. '{print $1 "." $2}')
 SCRIPT_URL="https://raw.githubusercontent.com/Rick-Hoppe/vsxexport/main/vsxexport.sh"
@@ -214,6 +217,19 @@ printf "\n+=======================+=======================================+=====
 printf "| VS/Setting/Parameter  | Check                                 | Status        |\n"
 printf "+=======================+=======================================+===============+\n"
 
+
+#====================================================================================================
+# Log output of cpinfo to file
+#====================================================================================================
+printf "| cpinfo -y all\t\t| Log cpinfo output to file\t\t|"
+cpinfo -y all >$OUTPUTDIR/VS0/cpinfo.log 2>&1
+if [[ -e $OUTPUTDIR/VS0/cpinfo.log ]]; then
+    check_passed
+else
+    check_failed
+fi
+
+printf "+-----------------------+---------------------------------------+---------------+\n"
 
 
 #====================================================================================================
@@ -356,6 +372,21 @@ fi
 printf "+-----------------------+---------------------------------------+---------------+\n"
 
 
+#====================================================================================================
+# Check for active proxy ARP in VS0
+#====================================================================================================
+PROXY_ARP=$(fw ctl arp -n 2>&1)
+fw ctl arp -n >$OUTPUTDIR/VS0/proxy_arp.log 2>&1
+
+
+if [[ -e $OUTPUTDIR/VS0/proxy_arp.log ]]; then
+    printf "| Active Proxy ARP\t| Log entries to file\t\t\t|${txt_green} SAVED${txt_reset}\t\t|\n"
+else
+    printf "| Active Proxy ARP\t| Log entries to file\t\t\t|${txt_green} NOT SAVED${txt_reset}\t|\n"
+fi
+
+printf "+-----------------------+---------------------------------------+---------------+\n"
+
 
 #====================================================================================================
 # Save VS0 config to OUTPUTDIR
@@ -370,6 +401,23 @@ else
     check_failed
 fi
 
+printf "| \t\t\t| Log current routes to file\t\t|"
+echo "show bgp peers" >>$OUTPUTDIR/$HOSTNAME-VS0.clish
+echo "show ospf neighbors" >>$OUTPUTDIR/$HOSTNAME-VS0.clish
+echo "show route" >>$OUTPUTDIR/$HOSTNAME-VS0.clish
+echo "show route summary" >>$OUTPUTDIR/$HOSTNAME-VS$i.clish
+clish -i -f $OUTPUTDIR/$HOSTNAME-VS0.clish > $OUTPUTDIR/$HOSTNAME-VS0.tmp
+sed '/^Processing\|^Context\|^Done.\|^RTGRTG\|^CLICMD/d' $OUTPUTDIR/$HOSTNAME-VS0.tmp >$OUTPUTDIR/VS0/VS0.log
+rm $OUTPUTDIR/$HOSTNAME-VS0.clish
+rm $OUTPUTDIR/$HOSTNAME-VS0.tmp
+
+netstat -rn >$OUTPUTDIR/VS0/routesVSX.txt
+
+if [[ -e $OUTPUTDIR/VS0/VS0.log ]]; then
+    check_passed
+else
+    check_failed
+fi												  
 
 
 #====================================================================================================
@@ -492,6 +540,15 @@ else
     printf "| \t\t\t| rad_conf.C NOT found\t\t|${txt_green} OK${txt_reset}\t\t|\n"
 fi
 
+if [[ -e $CPDIR/tmp/.CPprofile.sh ]]; then
+    cp --parents $CPDIR/tmp/.CPprofile.sh $OUTPUTDIR/VS0
+    printf "| \t\t\t| .CPprofile.sh found\t\t\t|${txt_green} SAVED${txt_reset}\t\t|\n"
+else
+    printf "| \t\t\t| .CPprofile.sh NOT found\t\t|${txt_green} OK${txt_reset}\t\t|\n"
+fi
+
+
+
 #====================================================================================================
 # Save custom configuration other VS's + checks
 #====================================================================================================
@@ -509,8 +566,8 @@ do
     mv VS$i.tmp $OUTPUTDIR/VS$i
     echo "set virtual-system $i" >$OUTPUTDIR/VS$i/VS$i.config
     echo "set virtual-system $i" >>$OUTPUTDIR/VS-all.config
-    grep -E 'set router-id|set as|set bgp|set prefix-|set routemap|set igmp|set pim|set ospf|set bootp|set route-redistribution|add arp|set max-path-splits|set inbound-route-filter|set pbr' $OUTPUTDIR/VS$i/VS$i.tmp >>$OUTPUTDIR/VS$i/VS$i.config
-    grep -E 'set router-id|set as|set bgp|set prefix-|set routemap|set igmp|set pim|set ospf|set bootp|set route-redistribution|add arp|set max-path-splits|set inbound-route-filter|set pbr' $OUTPUTDIR/VS$i/VS$i.tmp >>$OUTPUTDIR/VS-all.config
+     grep -E 'set router-id|set as|set aggregate|set bgp|set prefix-|set routemap|set igmp|set pim|set ospf|set bootp|set route-redistribution|add arp|set max-path-splits|set inbound-route-filter|set pbr' $OUTPUTDIR/VS$i/VS$i.tmp >>$OUTPUTDIR/VS$i/VS$i.config
+    grep -E 'set router-id|set as|set aggregate|set bgp|set prefix-|set routemap|set igmp|set pim|set ospf|set bootp|set route-redistribution|add arp|set max-path-splits|set inbound-route-filter|set pbr' $OUTPUTDIR/VS$i/VS$i.tmp >>$OUTPUTDIR/VS-all.config
     rm $OUTPUTDIR/$HOSTNAME-VS$i.clish
     rm $OUTPUTDIR/VS$i/VS$i.tmp
     if [[ -e $OUTPUTDIR/VS$i/VS$i.config ]]; then
@@ -518,6 +575,7 @@ do
     else
         check_failed
     fi
+
 
     printf "| \t\t\t| Log current routes to file\t\t|"
     echo "set virtual-system $i" >$OUTPUTDIR/$HOSTNAME-VS$i.clish
@@ -554,6 +612,13 @@ do
         check_failed
     fi
 
+   printf "| Active Proxy ARP\t| Log fw ctl arp output to file\t\t|"
+    fw ctl arp -n >$OUTPUTDIR/VS$i/proxy_arp.log 2>&1
+    if [[ -e $OUTPUTDIR/VS$i/proxy_arp.log ]]; then
+        check_passed
+    else
+        check_failed
+    fi																	 
     printf "| \t\t\t| \t\t\t\t\t|\t\t|\n"
     printf "| \t\t\t| Searching for configuration files:\t|\t\t|\n"
 
@@ -582,7 +647,18 @@ else
     printf "| \t\t\t| Default trac_client_1.ttm\t\t|${txt_green} NOT SAVED${txt_reset}\t|\n"
     fi
 
-    echo "+-----------------------+---------------------------------------+---------------+"
+    
+   CPDIRPATH=$(find /opt/CPshrd* -name CTX)
+   VSTMPPATH="$CPDIRPATH/CTX$VSZEROED/tmp"
+   #find $VSTMPPATH -name .CPprofile.sh | cpio -pdm --quiet $OUTPUTDIR/VS$i
+   if [[ -e $VSTMPPATH/.CPprofile.sh ]]; then
+	cp --parents $VSTMPPATH/.CPprofile.sh $OUTPUTDIR/VS$i
+	printf "| \t\t\t| .CPProfile.sh found\t\t\t|${txt_green} SAVED${txt_reset}\t\t|\n"
+    else
+        printf "| \t\t\t| .CPProfile.sh NOT found\t\t\t|${txt_green} OK${txt_reset}\t\t|\n"
+    fi	
+    echo "+-----------------------+---------------------------------------+---------------+"  
+
 done
 
 
